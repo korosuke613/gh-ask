@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/cli/go-gh/pkg/browser"
 	"github.com/cli/go-gh/pkg/tableprinter"
 	"os"
 	"strings"
@@ -21,6 +22,7 @@ func main() {
 }
 
 func cli() error {
+	lucky := flag.Bool("lucky", false, "Open the first matching result in a web browser")
 	repoOverride := flag.String(
 		"repo", "", "Specify a repository. If omitted, uses current repository")
 	flag.Parse()
@@ -93,6 +95,15 @@ func cli() error {
 
 	if len(matches) == 0 {
 		fmt.Fprintln(os.Stderr, "No matching discussion threads found :(")
+		return nil
+	}
+
+	if *lucky {
+		b := browser.New("", os.Stdout, os.Stderr)
+		err := b.Browse(matches[0].URL)
+		if err != nil {
+			return fmt.Errorf("failed open browser: %w", err)
+		}
 		return nil
 	}
 
