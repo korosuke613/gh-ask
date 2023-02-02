@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cli/go-gh"
 	"github.com/cli/go-gh/pkg/repository"
@@ -33,7 +35,12 @@ func cli() error {
 		return fmt.Errorf("could not determine what repo to use: %v", err.Error())
 	}
 
-	fmt.Printf("Going to search discussions in %s/%s\n", repo.Owner(), repo.Name())
+	if len(flag.Args()) < 1 {
+		return errors.New("search term required")
+	}
+	search := strings.Join(flag.Args(), " ")
+
+	fmt.Printf("Going to search discussions in '%s/%s' for '%s'\n", repo.Owner(), repo.Name(), search)
 
 	return nil
 }
