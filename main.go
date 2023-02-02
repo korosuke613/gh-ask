@@ -4,11 +4,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/cli/go-gh/pkg/tableprinter"
 	"os"
 	"strings"
 
 	"github.com/cli/go-gh"
 	"github.com/cli/go-gh/pkg/repository"
+	"github.com/cli/go-gh/pkg/term"
 )
 
 func main() {
@@ -94,8 +96,29 @@ func cli() error {
 		return nil
 	}
 
-	for _, d := range matches {
-		fmt.Printf("%s %s\n", d.Title, d.URL)
+	isTerminal := term.IsTerminal(os.Stdout)
+	tp := tableprinter.New(os.Stdout, isTerminal, 100)
+
+	if isTerminal {
+		fmt.Printf(
+			"Searching discussions in '%s/%s' for '%s'\n",
+			repo.Owner(), repo.Name(), search)
+		fmt.Println()
+
+		for _, d := range matches {
+			tp.AddField(d.Title)
+			tp.AddField(d.URL)
+			tp.EndRow()
+		}
+
+		err = tp.Render()
+		if err != nil {
+			return fmt.Errorf("could not render data: %w", err)
+		}
+	} else {
+		for _, d := range matches {
+			fmt.Printf("%s %s\n", d.Title, d.URL)
+		}
 	}
 
 	return nil
